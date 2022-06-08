@@ -16,6 +16,9 @@ class MyGame extends Phaser.Scene {
     this.add.image(640, 360, "backgroundImage");
     const platforms = this.physics.add.staticGroup();
     platforms.create(640, 680, "ground").setScale(6, 4).refreshBody();
+    platforms.create(100, 600, "ground").setScale(0.5, 4).refreshBody();
+    platforms.create(400, 600, "ground").setScale(0.5, 4).refreshBody();
+    platforms.create(800, 600, "ground").setScale(0.5, 4).refreshBody();
   }
 }
 
