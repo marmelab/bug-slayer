@@ -51,7 +51,7 @@ class BugSlayer extends Phaser.Scene {
       repeat: -1,
     });
     this.anims.create({
-      key: "turn",
+      key: "idle",
       frames: this.anims.generateFrameNumbers("mainCharacter", {
         start: 0,
         end: 3,
@@ -91,7 +91,7 @@ class BugSlayer extends Phaser.Scene {
       this.#player.anims.play("move", true);
     } else {
       this.#player.setVelocityX(0);
-      this.#player.anims.play("turn", true);
+      this.#player.anims.play("idle", true);
     }
 
     if (
