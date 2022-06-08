@@ -5,10 +5,6 @@ import mainCharacter from "./assets/mainCharacter.png";
 // 24 image, 576px
 
 class MyGame extends Phaser.Scene {
-  constructor() {
-    super();
-  }
-
   preload() {
     this.load.image("backgroundImage", backgroundImage);
     this.load.image("ground", platform);
