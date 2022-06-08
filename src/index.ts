@@ -42,7 +42,7 @@ class BugSlayer extends Phaser.Scene {
     this.physics.add.collider(this.#player, this.#platforms);
     this.#player.body.setGravityY(320);
     this.anims.create({
-      key: "right",
+      key: "move",
       frames: this.anims.generateFrameNumbers("mainCharacter", {
         start: 4,
         end: 9,
@@ -87,7 +87,8 @@ class BugSlayer extends Phaser.Scene {
         acceleration = this.#pad.axes[0].value;
       }
       this.#player.setVelocityX(200 * acceleration);
-      moveRight && this.#player.anims.play("right", true);
+      this.#player.setFlipX(!!moveLeft);
+      this.#player.anims.play("move", true);
     } else {
       this.#player.setVelocityX(0);
       this.#player.anims.play("turn", true);
