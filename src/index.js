@@ -1,39 +1,39 @@
-import Phaser from 'phaser';
-import logoImg from './assets/logo.png';
+import Phaser from "phaser";
+import backgroundImage from "./assets/background.jpg";
+import platform from "./assets/platform.png";
 
-class MyGame extends Phaser.Scene
-{
-    constructor ()
-    {
-        super();
-    }
+class MyGame extends Phaser.Scene {
+  constructor() {
+    super();
+  }
 
-    preload ()
-    {
-        this.load.image('logo', logoImg);
-    }
-      
-    create ()
-    {
-        const logo = this.add.image(400, 150, 'logo');
-      
-        this.tweens.add({
-            targets: logo,
-            y: 450,
-            duration: 2000,
-            ease: "Power2",
-            yoyo: true,
-            loop: -1
-        });
-    }
+  preload() {
+    this.load.image("backgroundImage", backgroundImage);
+    this.load.image("ground", platform);
+  }
+
+  create() {
+    this.add.image(640, 360, "backgroundImage");
+    const platforms = this.physics.add.staticGroup();
+    platforms.create(640, 680, "ground").setScale(6, 4).refreshBody();
+    platforms.create(100, 600, "ground").setScale(0.5, 4).refreshBody();
+    platforms.create(400, 600, "ground").setScale(0.5, 4).refreshBody();
+    platforms.create(800, 600, "ground").setScale(0.5, 4).refreshBody();
+  }
 }
 
 const config = {
-    type: Phaser.AUTO,
-    parent: 'phaser-example',
-    width: 800,
-    height: 600,
-    scene: MyGame
+  type: Phaser.AUTO,
+  width: 1280,
+  height: 720,
+  scene: MyGame,
+  physics: {
+    default: "arcade",
+    arcade: {
+      gravity: { y: 300 },
+      debug: false,
+    },
+  },
 };
 
 const game = new Phaser.Game(config);
