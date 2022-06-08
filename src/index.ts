@@ -52,20 +52,23 @@ class BugSlayer extends Phaser.Scene {
     } else {
       this.#pad = this.input.gamepad.pad1;
     }
-    this.input.enableDebug(this.#player);
   }
 
   update() {
     const cursors = this.input.keyboard.createCursorKeys();
     const padTiltToLeft =
-      this.#pad && this.#pad.axes[0].value <= -this.#pad.axes[0].threshold;
+      this.#pad && this.#pad.axes[0].value < this.#pad.axes[0].threshold;
     const padTiltToRight =
-      this.#pad && this.#pad.axes[0].value >= this.#pad.axes[0].threshold;
+      this.#pad && this.#pad.axes[0].value > this.#pad.axes[0].threshold;
     const XButtonPressed = this.#pad?.X;
-    if (cursors.left.isDown || padTiltToLeft) {
-      this.#player.setVelocityX(-160);
-    } else if (cursors.right.isDown || padTiltToRight) {
-      this.#player.setVelocityX(160);
+    const moveLeft = cursors.left.isDown || padTiltToLeft;
+    const moveRight = cursors.right.isDown || padTiltToRight;
+    if (moveLeft || moveRight) {
+      let acceleration = moveLeft ? -1 : 1;
+      if ((padTiltToLeft || padTiltToRight) && this.#pad) {
+        acceleration = this.#pad.axes[0].value;
+      }
+      this.#player.setVelocityX(200 * acceleration);
     } else {
       this.#player.setVelocityX(0);
     }
