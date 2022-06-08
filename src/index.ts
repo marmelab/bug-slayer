@@ -1,7 +1,7 @@
-import Phaser from "phaser";
-import backgroundImage from "./assets/background.jpg";
-import platform from "./assets/platform.png";
-import mainCharacter from "./assets/mainCharacter.png";
+import Phaser from 'phaser';
+import backgroundImage from './assets/background.jpg';
+import platform from './assets/platform.png';
+import mainCharacter from './assets/mainCharacter.png';
 
 class BugSlayer extends Phaser.Scene {
   #player!: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
@@ -10,40 +10,40 @@ class BugSlayer extends Phaser.Scene {
   #debug!: Phaser.GameObjects.Text;
 
   constructor() {
-    super("BugSlayer");
+    super('BugSlayer');
   }
 
   preload() {
-    this.load.image("backgroundImage", backgroundImage);
-    this.load.image("ground", platform);
-    this.load.spritesheet("mainCharacter", mainCharacter, {
+    this.load.image('backgroundImage', backgroundImage);
+    this.load.image('ground', platform);
+    this.load.spritesheet('mainCharacter', mainCharacter, {
       frameWidth: 24,
       frameHeight: 24,
     });
   }
 
   create() {
-    this.add.image(640, 360, "backgroundImage");
-    this.#debug = this.add.text(0, 0, "Debug", {
-      color: "black",
-      backgroundColor: "white",
-      fontSize: "40px",
+    this.add.image(640, 360, 'backgroundImage');
+    this.#debug = this.add.text(0, 0, 'Debug', {
+      color: 'black',
+      backgroundColor: 'white',
+      fontSize: '40px',
     });
 
     this.#platforms = this.physics.add.staticGroup();
-    this.#platforms.create(640, 680, "ground").setScale(6, 4).refreshBody();
-    this.#platforms.create(100, 600, "ground").setScale(0.5, 4).refreshBody();
-    this.#platforms.create(400, 600, "ground").setScale(0.5, 4).refreshBody();
-    this.#platforms.create(800, 600, "ground").setScale(0.5, 4).refreshBody();
+    this.#platforms.create(640, 680, 'ground').setScale(6, 4).refreshBody();
+    this.#platforms.create(100, 600, 'ground').setScale(0.5, 4).refreshBody();
+    this.#platforms.create(400, 600, 'ground').setScale(0.5, 4).refreshBody();
+    this.#platforms.create(800, 600, 'ground').setScale(0.5, 4).refreshBody();
 
-    this.#player = this.physics.add.sprite(100, 450, "mainCharacter");
+    this.#player = this.physics.add.sprite(100, 450, 'mainCharacter');
     this.#player.setScale(2);
     this.#player.setCollideWorldBounds(true);
     this.physics.add.collider(this.#player, this.#platforms);
     this.#player.body.setGravityY(320);
     this.anims.create({
-      key: "move",
-      frames: this.anims.generateFrameNumbers("mainCharacter", {
+      key: 'move',
+      frames: this.anims.generateFrameNumbers('mainCharacter', {
         start: 4,
         end: 9,
       }),
@@ -51,8 +51,8 @@ class BugSlayer extends Phaser.Scene {
       repeat: -1,
     });
     this.anims.create({
-      key: "idle",
-      frames: this.anims.generateFrameNumbers("mainCharacter", {
+      key: 'idle',
+      frames: this.anims.generateFrameNumbers('mainCharacter', {
         start: 0,
         end: 3,
       }),
@@ -62,7 +62,7 @@ class BugSlayer extends Phaser.Scene {
 
     if (this.input.gamepad.total === 0) {
       this.input.gamepad.once(
-        "connected",
+        'connected',
         (pad: Phaser.Input.Gamepad.Gamepad) => {
           this.#pad = pad;
         }
@@ -88,10 +88,10 @@ class BugSlayer extends Phaser.Scene {
       }
       this.#player.setVelocityX(200 * acceleration);
       this.#player.setFlipX(!!moveLeft);
-      this.#player.anims.play("move", true);
+      this.#player.anims.play('move', true);
     } else {
       this.#player.setVelocityX(0);
-      this.#player.anims.play("idle", true);
+      this.#player.anims.play('idle', true);
     }
 
     if (
@@ -109,7 +109,7 @@ const config = {
   height: 720,
   scene: BugSlayer,
   physics: {
-    default: "arcade",
+    default: 'arcade',
     arcade: {
       gravity: { y: 300 },
       debug: false,
@@ -120,4 +120,5 @@ const config = {
   },
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const game = new Phaser.Game(config);
