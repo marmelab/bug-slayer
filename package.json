@@ -7,7 +7,8 @@
     "build": "webpack --config webpack/prod.js ",
     "start": "webpack-dev-server --config webpack/base.js --open",
     "lint": "eslint src/**/*.ts",
-    "format": "prettier --write 'src/**/*.ts'"
+    "format": "prettier --write src/**/*.ts",
+    "typecheck": "tsc -b"
   },
   "license": "MIT",
   "devDependencies": {
@@ -33,5 +34,8 @@
   },
   "dependencies": {
     "phaser": "^3.55.2"
+  },
+  "engines": {
+    "node": ">=16.0.0"
   }
 }
