@@ -1,9 +1,8 @@
-name: 🚀 Deploy
+name: 🚀 Checks
 on:
   push:
     branches:
-      - main
-      - dev
+      - master
   pull_request: {}
 permissions:
   actions: write

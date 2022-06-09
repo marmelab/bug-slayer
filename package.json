@@ -8,7 +8,7 @@
     "start": "webpack-dev-server --config webpack/base.js --open",
     "lint": "eslint src/**/*.ts",
     "format": "prettier --write src/**/*.ts",
-    "typecheck": "tsc -b"
+    "typecheck": "tsc --noEmit"
   },
   "license": "MIT",
   "devDependencies": {
