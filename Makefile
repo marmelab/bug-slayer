@@ -20,3 +20,6 @@ lint-ci: ## Lint the code, used for CI
 
 format: ## Format the code usign prettier
 	npm run format
+
+typecheck: ## Typecheck the code
+	npm run typecheck
