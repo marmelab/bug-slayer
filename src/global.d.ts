@@ -1,2 +1,12 @@
-declare module '*.jpg';
-declare module '*.png';
+declare module '*.jpg' {
+  const value: string;
+  export = value;
+}
+declare module '*.png' {
+  const value: string;
+  export = value;
+}
+declare module '*.mp3' {
+  const value: string;
+  export = value;
+}
