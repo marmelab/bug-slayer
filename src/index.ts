@@ -60,6 +60,10 @@ class BugSlayer extends Phaser.Scene {
       repeat: -1,
     });
 
+    this.cameras.main.setBounds(0, 0, 1280, 720, true);
+    this.cameras.main.startFollow(this.#player, true, 0.8, 0.8);
+    this.cameras.main.setZoom(2);
+
     if (this.input.gamepad.total === 0) {
       this.input.gamepad.once(
         'connected',
