@@ -2,8 +2,10 @@ import Phaser from 'phaser';
 import backgroundImage from './assets/background.jpg';
 import platform from './assets/platform.png';
 import mainCharacter from './assets/mainCharacter.png';
-import { loadMusic } from './music/playMusic';
-import { playJump } from './sounds/jump';
+import { playMusic, pauseMusic } from './music/playMusic';
+import { playJumpSound } from './sounds/jump';
+import { Pause } from './pause';
+import gamepadButtons from './utils/gamepadButtons';
 
 class BugSlayer extends Phaser.Scene {
   #player!: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
@@ -20,9 +22,24 @@ class BugSlayer extends Phaser.Scene {
     this.load.image('ground', platform);
     this.load.spritesheet('mainCharacter', mainCharacter, {
       frameWidth: 24,
-      frameHeight: 24,
+      frameHeight: 20,
     });
-    loadMusic();
+    playMusic();
+  }
+
+  pause() {
+    this.scene.pause();
+    this.scene.launch('Pause');
+  }
+
+  registerPadActions() {
+    if (this.#pad) {
+      this.#pad.on('down', (button: number) => {
+        if (button === gamepadButtons.START) {
+          this.pause();
+        }
+      });
+    }
   }
 
   create() {
@@ -68,11 +85,26 @@ class BugSlayer extends Phaser.Scene {
         'connected',
         (pad: Phaser.Input.Gamepad.Gamepad) => {
           this.#pad = pad;
+          this.registerPadActions();
         }
       );
     } else {
       this.#pad = this.input.gamepad.pad1;
+      this.registerPadActions();
     }
+
+    this.events.on('pause', () => {
+      pauseMusic();
+    });
+
+    this.events.on('resume', () => {
+      playMusic();
+    });
+
+    this.input.keyboard.on('keydown-ESC', () => {
+      this.scene.pause();
+      this.scene.launch('Pause');
+    });
   }
 
   update() {
@@ -81,7 +113,7 @@ class BugSlayer extends Phaser.Scene {
       this.#pad && this.#pad.axes[0].value < -this.#pad.axes[0].threshold;
     const padTiltToRight =
       this.#pad && this.#pad.axes[0].value > this.#pad.axes[0].threshold;
-    const XButtonPressed = this.#pad?.X;
+    const AButtonPressed = this.#pad?.A;
     const moveLeft = cursors.left.isDown || padTiltToLeft;
     const moveRight = cursors.right.isDown || padTiltToRight;
     if (moveLeft || moveRight) {
@@ -98,11 +130,11 @@ class BugSlayer extends Phaser.Scene {
     }
 
     if (
-      (cursors.up.isDown || XButtonPressed) &&
+      (cursors.up.isDown || AButtonPressed) &&
       this.#player.body.touching.down
     ) {
       this.#player.setVelocityY(-330);
-      playJump();
+      playJumpSound();
     }
   }
 }
@@ -111,7 +143,7 @@ const config = {
   type: Phaser.AUTO,
   width: 1280,
   height: 720,
-  scene: BugSlayer,
+  scene: [BugSlayer, Pause],
   physics: {
     default: 'arcade',
     arcade: {

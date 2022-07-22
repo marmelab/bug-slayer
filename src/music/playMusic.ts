@@ -3,13 +3,10 @@ import music from '../assets/musics/peaceful-garden-healing-light-piano.mp3';
 const player = new Audio(music);
 player.loop = true;
 
-export const loadMusic = () => {
+export const playMusic = () => {
   player.play();
 };
 
-export const stop = () => {
+export const pauseMusic = () => {
   player.pause();
-};
-export const play = () => {
-  player.play();
 };
