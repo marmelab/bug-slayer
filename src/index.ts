@@ -12,6 +12,7 @@ class BugSlayer extends Phaser.Scene {
   #platforms!: Phaser.Physics.Arcade.StaticGroup;
   #pad?: Phaser.Input.Gamepad.Gamepad;
   #debug!: Phaser.GameObjects.Text;
+  #cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
 
   constructor() {
     super('BugSlayer');
@@ -80,6 +81,8 @@ class BugSlayer extends Phaser.Scene {
       repeat: -1,
     });
 
+    this.#cursors = this.input.keyboard.createCursorKeys();
+
     if (this.input.gamepad.total === 0) {
       this.input.gamepad.once(
         'connected',
@@ -108,14 +111,13 @@ class BugSlayer extends Phaser.Scene {
   }
 
   update() {
-    const cursors = this.input.keyboard.createCursorKeys();
     const padTiltToLeft =
       this.#pad && this.#pad.axes[0].value < -this.#pad.axes[0].threshold;
     const padTiltToRight =
       this.#pad && this.#pad.axes[0].value > this.#pad.axes[0].threshold;
     const AButtonPressed = this.#pad?.A;
-    const moveLeft = cursors.left.isDown || padTiltToLeft;
-    const moveRight = cursors.right.isDown || padTiltToRight;
+    const moveLeft = this.#cursors.left.isDown || padTiltToLeft;
+    const moveRight = this.#cursors.right.isDown || padTiltToRight;
     if (moveLeft || moveRight) {
       let acceleration = moveLeft ? -1 : 1;
       if ((padTiltToLeft || padTiltToRight) && this.#pad) {
@@ -130,7 +132,7 @@ class BugSlayer extends Phaser.Scene {
     }
 
     if (
-      (cursors.up.isDown || AButtonPressed) &&
+      (this.#cursors.up.isDown || AButtonPressed) &&
       this.#player.body.touching.down
     ) {
       this.#player.setVelocityY(-330);
