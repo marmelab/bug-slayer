@@ -2,6 +2,8 @@ import Phaser from 'phaser';
 import backgroundImage from './assets/background.jpg';
 import platform from './assets/platform.png';
 import mainCharacter from './assets/mainCharacter.png';
+import { loadMusic } from './music/playMusic';
+import { playJump } from './sounds/jump';
 
 class BugSlayer extends Phaser.Scene {
   #player!: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
@@ -20,6 +22,7 @@ class BugSlayer extends Phaser.Scene {
       frameWidth: 24,
       frameHeight: 24,
     });
+    loadMusic();
   }
 
   create() {
@@ -79,7 +82,7 @@ class BugSlayer extends Phaser.Scene {
   update() {
     const cursors = this.input.keyboard.createCursorKeys();
     const padTiltToLeft =
-      this.#pad && this.#pad.axes[0].value < this.#pad.axes[0].threshold;
+      this.#pad && this.#pad.axes[0].value < -this.#pad.axes[0].threshold;
     const padTiltToRight =
       this.#pad && this.#pad.axes[0].value > this.#pad.axes[0].threshold;
     const XButtonPressed = this.#pad?.X;
@@ -103,6 +106,7 @@ class BugSlayer extends Phaser.Scene {
       this.#player.body.touching.down
     ) {
       this.#player.setVelocityY(-330);
+      playJump();
     }
   }
 }
@@ -124,5 +128,4 @@ const config = {
   },
 };
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const game = new Phaser.Game(config);
+new Phaser.Game(config);

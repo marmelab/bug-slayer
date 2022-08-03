@@ -8,7 +8,9 @@ const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 module.exports = {
   mode: 'development',
   devtool: 'inline-source-map',
-
+  output: {
+    path: path.resolve(__dirname, '../dist'),
+  },
   module: {
     rules: [
       {
@@ -28,8 +30,8 @@ module.exports = {
         use: 'raw-loader',
       },
       {
-        test: /\.(gif|png|jpe?g|svg|xml)$/i,
-        use: 'file-loader',
+        test: /\.(gif|png|jpe?g|svg|xml|mp3|wav)$/i,
+        type: 'asset/resource',
       },
     ],
   },
