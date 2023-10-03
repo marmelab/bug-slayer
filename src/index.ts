@@ -10,9 +10,18 @@ class BugSlayer extends Phaser.Scene {
   #platforms!: Phaser.Physics.Arcade.StaticGroup;
   #pad?: Phaser.Input.Gamepad.Gamepad;
   #debug!: Phaser.GameObjects.Text;
+  audioContext?: AudioContext;
+  #analyser?: AnalyserNode;
+  #canDoubleJump = false;
 
   constructor() {
     super('BugSlayer');
+    this.audioContext = new AudioContext();
+    this.#analyser = this.audioContext?.createAnalyser();
+    navigator.mediaDevices.getUserMedia({ audio: true }).then((microphone)=>{
+      const microphoneStream = this.audioContext?.createMediaStreamSource(microphone);
+      microphoneStream && microphoneStream.connect(this.#analyser as AudioNode);
+    });
   }
 
   preload() {
@@ -80,6 +89,15 @@ class BugSlayer extends Phaser.Scene {
   }
 
   update() {
+    let heySound = false;
+    if (this.#analyser){
+      const pcmData = new Float32Array(this.#analyser.fftSize);
+      this.#analyser.getFloatTimeDomainData(pcmData);
+      let sumSquares = 0.0;
+      for (const amplitude of pcmData) { sumSquares += amplitude*amplitude; }
+      heySound = Math.sqrt(sumSquares / pcmData.length) > 0.2;
+      
+    }
     const cursors = this.input.keyboard.createCursorKeys();
     const padTiltToLeft =
       this.#pad && this.#pad.axes[0].value < -this.#pad.axes[0].threshold;
@@ -100,13 +118,19 @@ class BugSlayer extends Phaser.Scene {
       this.#player.setVelocityX(0);
       this.#player.anims.play('idle', true);
     }
-
-    if (
-      (cursors.up.isDown || XButtonPressed) &&
-      this.#player.body.touching.down
-    ) {
-      this.#player.setVelocityY(-330);
-      playJump();
+    const didPressJump = Phaser.Input.Keyboard.JustDown(cursors.up);
+    if (didPressJump || XButtonPressed || heySound) {
+      if (this.#player.body.onFloor()) {
+        this.#canDoubleJump = true;
+        this.#player.setVelocityY(-330);
+        playJump();
+        return;
+      } else if (this.#canDoubleJump) {
+        this.#canDoubleJump = false;
+        this.#player.setVelocityY(-330);
+        playJump();
+        return;
+      } 
     }
   }
 }
