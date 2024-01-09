@@ -1,10 +1,10 @@
 import Phaser from 'phaser';
 import backgroundImage from './assets/background.jpg';
-import platform from './assets/platform.png';
 import mainCharacter from './assets/mainCharacter.png';
-import { playMusic, pauseMusic } from './music/playMusic';
-import { playJumpSound } from './sounds/jump';
+import platform from './assets/platform.png';
+import { pauseMusic, playMusic } from './music/playMusic';
 import { Pause } from './pause';
+import { playJumpSound } from './sounds/jump';
 import gamepadButtons from './utils/gamepadButtons';
 
 class BugSlayer extends Phaser.Scene {
@@ -13,9 +13,19 @@ class BugSlayer extends Phaser.Scene {
   #pad?: Phaser.Input.Gamepad.Gamepad;
   #debug!: Phaser.GameObjects.Text;
   #cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
+  audioContext?: AudioContext;
+  #analyser?: AnalyserNode;
+  #canDoubleJump = false;
 
   constructor() {
     super('BugSlayer');
+    this.audioContext = new AudioContext();
+    this.#analyser = this.audioContext?.createAnalyser();
+    navigator.mediaDevices.getUserMedia({ audio: true }).then((microphone) => {
+      const microphoneStream =
+        this.audioContext?.createMediaStreamSource(microphone);
+      microphoneStream && microphoneStream.connect(this.#analyser as AudioNode);
+    });
   }
 
   preload() {
@@ -82,6 +92,9 @@ class BugSlayer extends Phaser.Scene {
     });
 
     this.#cursors = this.input.keyboard.createCursorKeys();
+    this.cameras.main.setBounds(0, 0, 1280, 720, true);
+    this.cameras.main.startFollow(this.#player, true, 0.8, 0.8);
+    this.cameras.main.setZoom(2);
 
     if (this.input.gamepad.total === 0) {
       this.input.gamepad.once(
@@ -111,11 +124,22 @@ class BugSlayer extends Phaser.Scene {
   }
 
   update() {
+    let heySound = false;
+    if (this.#analyser) {
+      const pcmData = new Float32Array(this.#analyser.fftSize);
+      this.#analyser.getFloatTimeDomainData(pcmData);
+      let sumSquares = 0.0;
+      for (const amplitude of pcmData) {
+        sumSquares += amplitude * amplitude;
+      }
+      heySound = Math.sqrt(sumSquares / pcmData.length) > 0.2;
+    }
+    const cursors = this.input.keyboard.createCursorKeys();
     const padTiltToLeft =
       this.#pad && this.#pad.axes[0].value < -this.#pad.axes[0].threshold;
     const padTiltToRight =
       this.#pad && this.#pad.axes[0].value > this.#pad.axes[0].threshold;
-    const AButtonPressed = this.#pad?.A;
+    const XButtonPressed = this.#pad?.X;
     const moveLeft = this.#cursors.left.isDown || padTiltToLeft;
     const moveRight = this.#cursors.right.isDown || padTiltToRight;
     if (moveLeft || moveRight) {
@@ -130,13 +154,19 @@ class BugSlayer extends Phaser.Scene {
       this.#player.setVelocityX(0);
       this.#player.anims.play('idle', true);
     }
-
-    if (
-      (this.#cursors.up.isDown || AButtonPressed) &&
-      this.#player.body.touching.down
-    ) {
-      this.#player.setVelocityY(-330);
-      playJumpSound();
+    const didPressJump = Phaser.Input.Keyboard.JustDown(cursors.up);
+    if (didPressJump || XButtonPressed || heySound) {
+      if (this.#player.body.onFloor()) {
+        this.#canDoubleJump = true;
+        this.#player.setVelocityY(-330);
+        playJumpSound();
+        return;
+      } else if (this.#canDoubleJump) {
+        this.#canDoubleJump = false;
+        this.#player.setVelocityY(-330);
+        playJumpSound();
+        return;
+      }
     }
   }
 }
