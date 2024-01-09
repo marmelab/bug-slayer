@@ -1,15 +1,18 @@
 import Phaser from 'phaser';
 import backgroundImage from './assets/background.jpg';
-import platform from './assets/platform.png';
 import mainCharacter from './assets/mainCharacter.png';
-import { loadMusic } from './music/playMusic';
-import { playJump } from './sounds/jump';
+import platform from './assets/platform.png';
+import { pauseMusic, playMusic } from './music/playMusic';
+import { Pause } from './pause';
+import { playJumpSound } from './sounds/jump';
+import gamepadButtons from './utils/gamepadButtons';
 
 class BugSlayer extends Phaser.Scene {
   #player!: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
   #platforms!: Phaser.Physics.Arcade.StaticGroup;
   #pad?: Phaser.Input.Gamepad.Gamepad;
   #debug!: Phaser.GameObjects.Text;
+  #cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
   audioContext?: AudioContext;
   #analyser?: AnalyserNode;
   #canDoubleJump = false;
@@ -18,8 +21,9 @@ class BugSlayer extends Phaser.Scene {
     super('BugSlayer');
     this.audioContext = new AudioContext();
     this.#analyser = this.audioContext?.createAnalyser();
-    navigator.mediaDevices.getUserMedia({ audio: true }).then((microphone)=>{
-      const microphoneStream = this.audioContext?.createMediaStreamSource(microphone);
+    navigator.mediaDevices.getUserMedia({ audio: true }).then((microphone) => {
+      const microphoneStream =
+        this.audioContext?.createMediaStreamSource(microphone);
       microphoneStream && microphoneStream.connect(this.#analyser as AudioNode);
     });
   }
@@ -29,9 +33,24 @@ class BugSlayer extends Phaser.Scene {
     this.load.image('ground', platform);
     this.load.spritesheet('mainCharacter', mainCharacter, {
       frameWidth: 24,
-      frameHeight: 24,
+      frameHeight: 20,
     });
-    loadMusic();
+    playMusic();
+  }
+
+  pause() {
+    this.scene.pause();
+    this.scene.launch('Pause');
+  }
+
+  registerPadActions() {
+    if (this.#pad) {
+      this.#pad.on('down', (button: number) => {
+        if (button === gamepadButtons.START) {
+          this.pause();
+        }
+      });
+    }
   }
 
   create() {
@@ -50,8 +69,11 @@ class BugSlayer extends Phaser.Scene {
 
     this.#player = this.physics.add.sprite(100, 450, 'mainCharacter');
     this.#player.setScale(2);
+    this.#player.setSize(15, 20);
     this.#player.setCollideWorldBounds(true);
+
     this.physics.add.collider(this.#player, this.#platforms);
+
     this.#player.body.setGravityY(320);
     this.anims.create({
       key: 'move',
@@ -72,6 +94,7 @@ class BugSlayer extends Phaser.Scene {
       repeat: -1,
     });
 
+    this.#cursors = this.input.keyboard.createCursorKeys();
     this.cameras.main.setBounds(0, 0, 1280, 720, true);
     this.cameras.main.startFollow(this.#player, true, 0.8, 0.8);
     this.cameras.main.setZoom(2);
@@ -81,22 +104,38 @@ class BugSlayer extends Phaser.Scene {
         'connected',
         (pad: Phaser.Input.Gamepad.Gamepad) => {
           this.#pad = pad;
+          this.registerPadActions();
         }
       );
     } else {
       this.#pad = this.input.gamepad.pad1;
+      this.registerPadActions();
     }
+
+    this.events.on('pause', () => {
+      pauseMusic();
+    });
+
+    this.events.on('resume', () => {
+      playMusic();
+    });
+
+    this.input.keyboard.on('keydown-ESC', () => {
+      this.scene.pause();
+      this.scene.launch('Pause');
+    });
   }
 
   update() {
     let heySound = false;
-    if (this.#analyser){
+    if (this.#analyser) {
       const pcmData = new Float32Array(this.#analyser.fftSize);
       this.#analyser.getFloatTimeDomainData(pcmData);
       let sumSquares = 0.0;
-      for (const amplitude of pcmData) { sumSquares += amplitude*amplitude; }
+      for (const amplitude of pcmData) {
+        sumSquares += amplitude * amplitude;
+      }
       heySound = Math.sqrt(sumSquares / pcmData.length) > 0.2;
-      
     }
     const cursors = this.input.keyboard.createCursorKeys();
     const padTiltToLeft =
@@ -104,8 +143,8 @@ class BugSlayer extends Phaser.Scene {
     const padTiltToRight =
       this.#pad && this.#pad.axes[0].value > this.#pad.axes[0].threshold;
     const XButtonPressed = this.#pad?.X;
-    const moveLeft = cursors.left.isDown || padTiltToLeft;
-    const moveRight = cursors.right.isDown || padTiltToRight;
+    const moveLeft = this.#cursors.left.isDown || padTiltToLeft;
+    const moveRight = this.#cursors.right.isDown || padTiltToRight;
     if (moveLeft || moveRight) {
       let acceleration = moveLeft ? -1 : 1;
       if ((padTiltToLeft || padTiltToRight) && this.#pad) {
@@ -123,14 +162,14 @@ class BugSlayer extends Phaser.Scene {
       if (this.#player.body.onFloor()) {
         this.#canDoubleJump = true;
         this.#player.setVelocityY(-330);
-        playJump();
+        playJumpSound();
         return;
       } else if (this.#canDoubleJump) {
         this.#canDoubleJump = false;
         this.#player.setVelocityY(-330);
-        playJump();
+        playJumpSound();
         return;
-      } 
+      }
     }
   }
 }
@@ -139,12 +178,12 @@ const config = {
   type: Phaser.AUTO,
   width: 1280,
   height: 720,
-  scene: BugSlayer,
+  scene: [BugSlayer, Pause],
   physics: {
     default: 'arcade',
     arcade: {
       gravity: { y: 300 },
-      debug: false,
+      debug: true,
     },
   },
   input: {
