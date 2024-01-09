@@ -69,8 +69,11 @@ class BugSlayer extends Phaser.Scene {
 
     this.#player = this.physics.add.sprite(100, 450, 'mainCharacter');
     this.#player.setScale(2);
+    this.#player.setSize(15, 20);
     this.#player.setCollideWorldBounds(true);
+
     this.physics.add.collider(this.#player, this.#platforms);
+
     this.#player.body.setGravityY(320);
     this.anims.create({
       key: 'move',
@@ -180,7 +183,7 @@ const config = {
     default: 'arcade',
     arcade: {
       gravity: { y: 300 },
-      debug: false,
+      debug: true,
     },
   },
   input: {
